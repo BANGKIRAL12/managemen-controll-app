@@ -1,0 +1,131 @@
+Project app/
+ +-- node_modules/
+ �
+ +-- public/
+ �   +-- index.html
+ �   +-- favicon.ico
+ �
+ +-- src/
+ �   +-- App.js
+ �   +-- components/
+ �   +-- config/
+ �   +-- models/
+ �
+ +-- index.js
+ +-- package.json
+ +-- README.md
+
+
+sekarang buatkan komponent yang berbeda untuk control panel sebelah kiri layar dengan di bagian bawah tombol settings berwarna biru dan tombol untuk navigasi di panel nya
+
+Membuat game yang sepenuhnya mirip dengan Minecraft dalam JavaScript untuk web adalah tantangan besar dan rumit, terutama karena banyak elemen yang kompleks, termasuk grafis, gameplay, dan jaringan. Di sini, saya akan memberikan gambaran umum dan panduan awal berikut dengan contoh sederhana untuk memulai proyek kamu. ### 1. Teknologi yang Diperlukan - **HTML5** untuk struktur halaman. - **CSS3** untuk styling. - **JavaScript** untuk logika permainan. - **Three.js** untuk grafik 3D. - **Socket.io** untuk komunikasi multipemain. ### 2. Struktur Proyek Buat folder untuk proyekmu, misalnya `minecraft-clone`, dan buat beberapa file: ``` minecraft-clone/ ├── index.html ├── style.css └── script.js ``` ### 3. Kode Dasar **index.html** ```html <!DOCTYPE html> <html lang="id"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Klone Minecraft</title> <link rel="stylesheet" href="style.css"> </head> <body> <canvas id="gameCanvas"></canvas> <script src="https://threejs.org/build/three.js"></script> <script src="/socket.io/socket.io.js"></script> <script src="script.js"></script> </body> </html> ``` **style.css** ```css body { margin: 0; overflow: hidden; } canvas { display: block; } ``` **script.js** ```javascript const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('gameCanvas')}); renderer.setSize(window.innerWidth, window.innerHeight); document.body.appendChild(renderer.domElement); // Buat blok const createCube = (x, y, z) => { const geometry = new THREE.BoxGeometry(); const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); const cube = new THREE.Mesh(geometry, material); cube.position.set(x, y, z); scene.add(cube); }; // Menghasilkan beberapa blok for (let i = -5; i < 5; i++) { for (let j = -5; j < 5; j++) { createCube(i, 0, j); } } camera.position.z = 5; function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); } animate(); ``` ### 4. Menambahkan Fitur - **Tekstur Blok**: Gunakan tekstur yang terinspirasi oleh Minecraft untuk menggantikan warna solid. Kamu bisa menggunakan image textures dan menerapkannya pada material. - **Multiplayer**: Dengan Socket.io, buat server Node.js untuk menangani koneksi pemain dan koordinasi antar pemain. - **Kontrol Pemain**: Implementasikan kontrol menggunakan keyboard dan mouse untuk memungkinkan pemain bergerak dan berinteraksi. - **Sistem Inventory dan Crafting**: Buat sistem di mana pemain dapat mengumpulkan item dan crafting. - **AI dan Monster**: Implementasikan AI sederhana untuk monster dalam game. ### 5. Pelajari Proyek Terbuka Cari proyek terbuka yang terinspirasi oleh Minecraft seperti "Paper Minecraft" untuk memahami cara mereka bekerja. Ini bisa memberikan insight lebih dalam tentang struktur proyek yang lebih besar. ### Catatan Penting Game yang sama persis dengan Minecraft tidak bisa dibuat karena masalah hak cipta. Namun, kamu dapat membuat versi terinspirasi dengan elemen yang sama tanpa melanggar hak cipta. Proyek ini membutuhkan waktu dan keterampilan, jadi mulailah dari yang kecil dan tingkatkan seiring waktu. Jika kamu baru belajar, fokuslah pada satu fitur pada satu waktu. Semoga sukses!
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+  <StatCard theme={theme} icon={<i className="fa-solid fa-eye" style={{ color: '#3B82F6' }}></i>} label="Total Penonton" value={stats.views} />
+  <StatCard theme={theme} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#EF4444' }}></i>} label="Total Suka" value={stats.likes} />
+  <StatCard theme={theme} icon={<i className="fa-solid fa-circle-play" style={{ color: '#10B981' }}></i>} label="Waktu Tonton" value={stats.watchTime} />
+</div>
+
+Untuk menampilkan dua halaman berbeda di URL yang berbeda di React tanpa melakukan reload, kamu bisa menggunakan `react-router-dom`. Berikut adalah langkah-langkah yang dapat kamu ikuti:
+
+1. **Instal `react-router-dom`**: Jika belum diinstal, jalankan perintah berikut di terminal:
+
+ ```bash
+ npm install react-router
+   ```
+
+2. **Setup Router**: Buat file `App.js` atau di file utama komponen kamu, lalu buat routing menggunakan `BrowserRouter`, `Routes`, dan `Route`.
+
+   Berikut adalah contoh implementasinya:
+
+   ```javascript
+   import React from 'react';
+   import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+
+   const HalamanA = () => {
+       return <h1>Ini Halaman A</h1>;
+   };
+
+   const HalamanB = () => {
+       return <h1>Ini Halaman B</h1>;
+   };
+
+   const App = () => {
+       return (
+           <Router>
+               <nav>
+                   <Link to="/a">Halaman A</Link>
+                   <Link to="/b">Halaman B</Link>
+               </nav>
+               <Routes>
+                   <Route path="/a" element={<HalamanA />} />
+                   <Route path="/b" element={<HalamanB />} />
+               </Routes>
+           </Router>
+       );
+   };
+
+   export default App;
+   ```
+
+3. **Jalankan Aplikasi**: Setelah kamu mengatur routing seperti di atas, jalankan aplikasi React kamu. Sekarang, saat mengklik tautan "Halaman A" atau "Halaman B", konten akan berganti sesuai dengan URL yang dipilih tanpa melakukan reload halaman.
+
+Dengan menggunakan `react-router-dom`, kamu dapat mengelola navigasi antar halaman dengan mudah di aplikasi React.
+tapi aku angin mrnggunakan tombol link costum
+Jika kamu ingin menggunakan tombol kustom alih-alih elemen link standar (`<Link>`), kamu bisa menggunakan komponen `useNavigate` dari `react-router-dom`. Berikut adalah cara melakukannya:
+
+1. **Impor `useNavigate`**: Tambahkan impor `useNavigate` ke dalam file komponen kamu.
+
+2. **Buat Fungsi untuk Navigasi**: Gunakan `useNavigate` untuk membuat fungsi yang akan memanggil navigasi ke URL yang diinginkan.
+
+Berikut adalah contoh implementasinya:
+
+```javascript
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+
+const HalamanA = () => {
+    return <h1>Ini Halaman A</h1>;
+};
+
+const HalamanB = () => {
+    return <h1>Ini Halaman B</h1>;
+};
+
+const App = () => {
+    return (
+        <Router>
+            <div>
+                <TombolNavigasi tujuan="/a" label="Ke Halaman A" />
+                <TombolNavigasi tujuan="/b" label="Ke Halaman B" />
+            </div>
+            <Routes>
+                <Route path="/a" element={<HalamanA />} />
+                <Route path="/b" element={<HalamanB />} />
+            </Routes>
+        </Router>
+    );
+};
+
+const TombolNavigasi = ({ tujuan, label }) => {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        navigate(tujuan);
+    };
+
+    return (
+        <button onClick={handleClick}>
+            {label}
+        </button>
+    );
+};
+
+export default App;
+```
+
+Dalam contoh di atas:
+- `TombolNavigasi` adalah komponen yang menerima `tujuan` dan `label` sebagai props.
+- Ketika tombol diklik, fungsi `handleClick` akan memanggil `navigate(tujuan)` untuk berpindah ke halaman yang sesuai tanpa melakukan reload.
+
+Dengan cara ini, kamu dapat menggunakan tombol kustom untuk navigasi antar halaman dalam aplikasi React-mu.
+
