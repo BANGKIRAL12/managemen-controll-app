@@ -1,4 +1,5 @@
 Project app/
+ +-- library/
  +-- node_modules/
  �
  +-- public/
@@ -8,9 +9,15 @@ Project app/
  +-- src/
  �   +-- App.js
  �   +-- components/
+ �   �   +-- element/
+ �   �   +-- layout/
  �   +-- config/
  �   +-- models/
+ �   +-- pages/
  �
+ +-- utils/
+ +-- .env
+ +-- .gitignore
  +-- index.js
  +-- package.json
  +-- README.md
