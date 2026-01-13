@@ -4,6 +4,7 @@ const http = require('http')
 const { Server } = require('socket.io');
 const { google } = require('googleapis');
 const { Readable } = require('stream');
+
 const app = express();
 const server = http.createServer(app)
 
@@ -31,6 +32,10 @@ const upload = multer({
     limits: {
         fileSize: 50 * 1024 * 1024 // Batas ukuran file misalnya 50MB
     }
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 // 1. Route untuk mulai Login

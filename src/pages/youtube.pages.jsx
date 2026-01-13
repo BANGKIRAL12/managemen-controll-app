@@ -35,7 +35,7 @@ const YoutubeView = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:1234/datas")
+    fetch("/datas")
       .then(res => {
         if (!res.ok) throw new Error("Gagal mengambil data");
         return res.json();
@@ -98,7 +98,7 @@ const YoutubeView = ({
 
     try {
       const res = await axios.post(
-        "http://localhost:1234/upload",
+        "/upload",
         dataForm
       );
 

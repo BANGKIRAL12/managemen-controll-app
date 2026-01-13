@@ -35,7 +35,10 @@ const getTheme = (darkMode) => ({
   settingsBlue: '#3b82f6',
 });
 
-const socket = io()
+const socket = io({
+  transports: ['websocket', 'polling'],
+  secure: true
+})
 
 let modelsMode;
 
