@@ -24,4 +24,21 @@ function formatDurationISOtoMMSS(isoDuration) {
   return `${pad(totalMinutes)}:${pad(seconds)}`;
 }
 
-module.exports = { formatDurationISOtoMMSS }
+function formatDateToYYYYMMDD(tanggal = new Date(), rentang = 28) {
+  const formattedToday = tanggal.toISOString().split('T')[0];
+  
+  const pastDate = new Date();
+  // Kurangi 28 hari dari tanggal saat ini menggunakan setDate()
+  pastDate.setDate(tanggal.getDate() - rentang);
+  const formattedPastDate = pastDate.toISOString().split('T')[0];
+
+  return {
+    today: formattedToday,
+    pastDate: formattedPastDate
+  }
+}
+
+module.exports = { 
+  formatDurationISOtoMMSS,
+  formatDateToYYYYMMDD 
+}

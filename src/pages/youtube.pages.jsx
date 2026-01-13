@@ -31,6 +31,9 @@ const YoutubeView = ({
     { id: '4', title: 'Tips Menjadi Fullstack Developer', views: '5.1K', date: '15 Okt 2023', duration: '22:05', thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80' },
     { id: '5', title: 'Membangun API dengan Node.js', views: '3.2K', date: '20 Okt 2023', duration: '18:30', thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400&q=80' },
   ]);
+  const [topVideo, setTopVideo] = useState([
+
+  ])
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -41,9 +44,10 @@ const YoutubeView = ({
         return res.json();
       })
       .then(data => {
-        setStats(data.data1);
-        setVideos(data.data2)
-        setInitialComments(data.data3)
+        setStats(data[0]);
+        setVideos(data[1])
+        setInitialComments(data[2])
+        setTopVideo(data[4])
         setLoading(false);
       })
       .catch(err => {
@@ -320,13 +324,13 @@ const YoutubeView = ({
           <div style={s.sectionTitle}>Ringkasan Performa</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
             <StatCard theme={theme} bg={'#EF4444'} icon={<i className="fa-solid fa-user-plus" style={{ color: '#ffffff' }}></i>} label="Subscriber" value={stats.subscriber} />
-            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.likes} />
+            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.likes || 0} />
             <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jumlah Tonton" value={stats.views} />
           </div>
         </div>
 
         <div id="datastistik" style={{display: 'flex', justifyContent: 'space-between',}}>
-          <div style={{width: '70%'}}>
+          <div style={{width: '75%'}}>
             {/* VIDEOS */}
             <div>
               <div style={s.sectionTitle}>Koleksi Video</div>
@@ -377,8 +381,8 @@ const YoutubeView = ({
             </div>
           </div>
 
-          <div style={{width: '30%', display: 'flex', justifyContent: 'center'}}>
-            <DataCard theme={theme} />
+          <div style={{width: '25%', display: 'flex', justifyContent: 'center'}}>
+            <DataCard theme={theme} dataVideo={topVideo} />
           </div>
         </div>
         

@@ -46,7 +46,8 @@ app.get('/auth', (req, res) => {
     scope: [
       'https://www.googleapis.com/auth/youtube.upload',
       'https://www.googleapis.com/auth/youtube.readonly',
-      'https://www.googleapis.com/auth/youtube.force-ssl'
+      'https://www.googleapis.com/auth/youtube.force-ssl',
+      'https://www.googleapis.com/auth/yt-analytics.readonly'
     ]
   });
   res.redirect(url);
@@ -115,10 +116,14 @@ app.post('/upload', upload.fields([
 });
 app.get('/datas', async (req, res) => {
   try {
-    const data1 = await yt.getChannelStats();
-    const data2 = await yt.getFullVideoList();
-    const data3 = await yt.getChannelComments();
-    res.json({ data1: data1, data2: data2, data3: data3 }); // kirim object, bukan hanya subscriber
+    const data = [
+      await yt.getChannelStats(),
+      await yt.getFullVideoList(),
+      await yt.getChannelComments(),
+      await yt.getStatsByRange(),
+      await yt.getTop5Videos(),
+    ]
+    res.json(data); // kirim object, bukan hanya subscriber
   } catch (err) {
     console.error("Error /datas:", err.message);
     res.status(500).json({

@@ -14,7 +14,7 @@ const StatCard = ({ icon, label, value, theme, bg }) => {
   );
 };
 
-const DataCard = ({ theme }) => {
+const DataCard = ({ theme, dataVideo }) => {
   const isDark = theme === 'dark';
   const s = {
     container: {
@@ -23,7 +23,7 @@ const DataCard = ({ theme }) => {
       height: '400px',
       border: 'solid 1px #bdbebf',
       borderRadius: '25px',
-      backgroundColor: {backgroundColor: isDark ? '#242424' : '#f2f2f2'},
+      backgroundColor: isDark ? '#242424' : '#f2f2f2',
     },
     containerMini: {
       margin: '20px',
@@ -47,7 +47,34 @@ const DataCard = ({ theme }) => {
     dataJudul: {
       margin: '0 25px 25px 25px'
     },
-
+    video: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '8px',
+      borderBottom: '1px solid #eee',
+      cursor: 'pointer'
+    },
+    thumbnail: {
+      width: '40px',
+      height: '25px',
+      objectFit: 'cover',
+      borderRadius: '4px'
+    },
+    info: {
+      display: 'flex',
+      flexDirection: 'column'
+    },
+    title: {
+      margin: 0,
+      fontSize: '14px',
+      lineHeight: '1.2'
+    },
+    views: {
+      margin: 0,
+      fontSize: '12px',
+      color: '#666'
+    }
   }
   return (
     <div>
@@ -61,6 +88,22 @@ const DataCard = ({ theme }) => {
         <hr style={s.garis}></hr>
         <div>
           <i style={{margin: '50px 20px'}}>Top Content</i>
+          <div  style={{overflowY: 'auto', height: '200px', borderRadius: '20px' }} className="custom-scroll" >
+            {dataVideo.map(v => (
+              <div key={v.id} style={s.video}>
+                <img
+                  src={v.thumbnail}
+                  alt={v.title}
+                  style={s.thumbnail}
+                />
+
+                <div style={s.info}>
+                  <h6 style={s.title}>{v.title}</h6>
+                  <p style={s.views}>{v.views}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -70,6 +113,16 @@ const DataCard = ({ theme }) => {
         <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#25dbe8'}}></div>
         <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#9b43e8'}}></div>
       </div>
+
+      <style>{`
+      .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+      .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+      .custom-scroll::-webkit-scrollbar-thumb { background: ${isDark ? '#444' : '#ccc'}; border-radius: 10px; }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+      input[type="radio"] { accent-color: #CC0000; scale: 1.2; }
+      `}</style>
+
     </div>
   )
 }

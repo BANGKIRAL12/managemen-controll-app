@@ -5,6 +5,10 @@ const { Readable } = require('stream');
 const formatters = require('../../../utils/formatters')
 const oauth2Client = require('../../../src/config/config').oauth2Client
 
+const analytics = google.youtubeAnalytics({
+  version: 'v2',
+  auth: oauth2Client
+});
 const youtube = google.youtube({
   version: 'v3',
   auth: oauth2Client
@@ -173,11 +177,86 @@ const getChannelComments = async () => {
   }
 };
 
+const getStatsByRange = async (
+  startDate = formatters.formatDateToYYYYMMDD().pastDate, 
+  endDate = formatters.formatDateToYYYYMMDD().today
+) => {
+  try {
+    const res = await analytics.reports.query({
+      ids: 'channel==MINE',
+      startDate: startDate,
+      endDate: endDate,
+      // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
+      metrics: 'views,subscribersGained,estimatedMinutesWatched',
+    });
+
+    const data = res.data.rows[0];
+    return {
+      views: data[0],
+      subscribers: data[1],
+      watchTimeMinutes: data[2],
+      watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
+    };
+  } catch (error) {
+    console.error("Error Analytics Range:", error);
+    throw error;
+  }
+};
+
+const getTop5Videos = async (
+  startDate = formatters.formatDateToYYYYMMDD().pastDate, 
+  endDate = formatters.formatDateToYYYYMMDD().today
+) => {
+  try {
+    // 1. Ambil ID video terpopuler dari Analytics API
+    const analyticsRes = await analytics.reports.query({
+      ids: 'channel==MINE',
+      startDate: startDate,
+      endDate: endDate,
+      metrics: 'views',
+      dimensions: 'video',
+      sort: '-views',
+      maxResults: 5
+    });
+
+    if (!analyticsRes.data.rows || analyticsRes.data.rows.length === 0) {
+      return [];
+    }
+
+    // Ambil semua videoId hasil analytics
+    const videoIds = analyticsRes.data.rows.map(row => row[0]).join(',');
+
+    // 2. Ambil Judul dan Thumbnail dari Data API v3 menggunakan ID tersebut
+    const dataApiRes = await youtube.videos.list({
+      part: 'snippet,statistics',
+      id: videoIds
+    });
+
+    // 3. Gabungkan data Analytics (views) dengan Data API (judul & thumbnail)
+    return dataApiRes.data.items.map((item) => {
+      // Cari data view yang cocok dari hasil analytics tadi
+      const analyticsData = analyticsRes.data.rows.find(row => row[0] === item.id);
+      
+      return {
+        id: item.id,
+        title: item.snippet.title,
+        thumbnail: item.snippet.thumbnails.high.url, // atau .medium.url
+        views: analyticsData ? analyticsData[1] : item.statistics.viewCount
+      };
+    });
+  } catch (error) {
+    console.error("Error Top 5 Lengkap:", error);
+    throw error;
+  }
+};
+
 // uploadKeYoutube('./SosMed/AA001a_1@_wanawisata-kedungombo--komang-lirik--[event= lt 1 @11-nov-2025] #12-13-2025_19.20.mp4')
 
 module.exports = {
   upload,
   getChannelStats,
   getFullVideoList,
-  getChannelComments
+  getChannelComments,
+  getStatsByRange,
+  getTop5Videos,
 }
