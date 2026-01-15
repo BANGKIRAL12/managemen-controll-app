@@ -63,23 +63,6 @@ async function uploadThumbnail(videoId, buffer, mimeType) {
   console.log('Thumbnail berhasil dipasang!');
 }
 
-const getChannelStats = async () => {
-  const res = await youtube.channels.list({
-    part: 'statistics',
-    mine: true // Mengambil data channel milik akun yang login
-  });
-
-  const stats = res.data.items[0].statistics;
-  // console.log('Subscriber:', stats.subscriberCount);
-  // console.log('Total View:', stats.viewCount);
-  // console.log('Total Video:', stats.videoCount);
-
-  return {
-    subscriber: stats.subscriberCount,
-    views: stats.viewCount
-  }
-}
-
 const getFullVideoList = async () => {
 
   // 1. Dapatkan ID playlist "Uploads"
@@ -92,9 +75,9 @@ const getFullVideoList = async () => {
     playlistId: uploadsId,
     maxResults: 50
   });
-
+  
   const videoIds = playlistRes.data.items.map(v => v.contentDetails.videoId).join(',');
-
+  
   // 3. Ambil Detail (Penayangan & Durasi)
   const detailRes = await youtube.videos.list({
     part: 'statistics,contentDetails',
@@ -114,32 +97,6 @@ const getFullVideoList = async () => {
     };
   });
 }
-
-const getKomentarPerVideo = async (videoId, judulVideo) => {
-  try {
-    const res = await youtube.commentThreads.list({
-      part: 'snippet',
-      videoId: videoId,
-      maxResults: 100 // Mengambil hingga 100 komentar per video
-    });
-
-    if (!res.data.items) return [];
-
-    return res.data.items.map(item => {
-      const snippet = item.snippet.topLevelComment.snippet;
-      return {
-        videoTitle: judulVideo,
-        user: snippet.authorDisplayName,
-        text: snippet.textDisplay,
-        time: snippet.publishedAt,
-        id: item.snippet.topLevelComment.id
-      };
-    });
-  } catch (error) {
-    console.error(`Gagal mengambil komentar untuk video ${videoId}:`, error.message);
-    return [];
-  }
-};
 
 // Fungsi Utama: Mengambil SEMUA komentar di Channel
 const getChannelComments = async () => {
@@ -177,31 +134,137 @@ const getChannelComments = async () => {
   }
 };
 
-const getStatsByRange = async (
+const getKomentarPerVideo = async (videoId, judulVideo) => {
+  try {
+    const res = await youtube.commentThreads.list({
+      part: 'snippet',
+      videoId: videoId,
+      maxResults: 100 // Mengambil hingga 100 komentar per video
+    });
+    
+    if (!res.data.items) return [];
+    
+    return res.data.items.map(item => {
+      const snippet = item.snippet.topLevelComment.snippet;
+      return {
+        videoTitle: judulVideo,
+        user: snippet.authorDisplayName,
+        text: snippet.textDisplay,
+        time: snippet.publishedAt,
+        id: item.snippet.topLevelComment.id
+      };
+    });
+  } catch (error) {
+    console.error(`Gagal mengambil komentar untuk video ${videoId}:`, error.message);
+    return [];
+  }
+};
+
+// const getStatsByRange = async (
+//   startDate = formatters.formatDateToYYYYMMDD().pastDate, 
+//   endDate = formatters.formatDateToYYYYMMDD().today
+// ) => {
+//   try {
+//     const res = await analytics.reports.query({
+//       ids: 'channel==MINE',
+//       startDate: startDate,
+//       endDate: endDate,
+//       // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
+//       metrics: 'views,subscribersGained,estimatedMinutesWatched',
+//     });
+    
+//     const data = res.data.rows[0];
+//     return {
+//       count: {
+//         views: data[0],
+//         subscribers: data[1],
+//         watchTimeMinutes: data[2],
+//         watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
+//       },
+//       progres: {
+//         views: data[0],
+//         subscribers: data[1],
+//         watchTimeMinutes: data[2],
+//         watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
+//       }
+//     };
+//   } catch (error) {
+//     console.error("Error Analytics Range:", error);
+//     throw error;
+//   }
+// };
+
+// const getChannelStats = async () => {
+//   const res = await youtube.channels.list({
+//     part: 'statistics',
+//     mine: true // Mengambil data channel milik akun yang login
+//   });
+
+//   const stats = res.data.items[0].statistics;
+//   // console.log('Subscriber:', stats.subscriberCount);
+//   // console.log('Total View:', stats.viewCount);
+//   // console.log('Total Video:', stats.videoCount);
+
+//   return {
+//     subscriber: stats.subscriberCount,
+//     views: stats.viewCount
+//   }
+// }
+
+const getChannelStatsAll = async (
   startDate = formatters.formatDateToYYYYMMDD().pastDate, 
   endDate = formatters.formatDateToYYYYMMDD().today
 ) => {
   try {
-    const res = await analytics.reports.query({
+    const channelRes = await youtube.channels.list({
+      part: 'snippet,statistics,contentDetails',
+      mine: true // Mengambil data channel milik akun yang login
+    });
+    const channelData       = channelRes.data.items[0];
+    const masterStats       = channelData.statistics;
+    const uploadsPlaylistId = channelData.contentDetails.relatedPlaylists.uploads;
+
+    const analyticsRes = await analytics.reports.query({
       ids: 'channel==MINE',
       startDate: startDate,
       endDate: endDate,
       // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
-      metrics: 'views,subscribersGained,estimatedMinutesWatched',
+      metrics: 'views,subscribersGained,subscribersLost,estimatedMinutesWatched',
     });
+    const analyticsOnYear = await analytics.reports.query({
+      ids: 'channel==MINE',
+      startDate: formatters.formatDateToYYYYMMDD(new Date(), 365).pastDate,
+      endDate: endDate,
+      // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
+      metrics: 'views,subscribersGained,subscribersLost,estimatedMinutesWatched',
+    });
+    const analyticsStats = [
+      analyticsRes.data.rows    ? analyticsRes.data.rows[0] : [0, 0, 0],
+      analyticsOnYear.data.rows ? analyticsOnYear.data.rows[0] : [0, 0, 0]
+    ] 
 
-    const data = res.data.rows[0];
     return {
-      views: data[0],
-      subscribers: data[1],
-      watchTimeMinutes: data[2],
-      watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
-    };
+      count: {
+        subscriber: masterStats.subscriberCount,
+        views:      masterStats.viewCount,
+        watchTime:       (analyticsStats[0][3] / 60).toFixed(2),
+        
+        viewsInRange:     analyticsStats[0][0],
+        subGainedInRange: analyticsStats[0][1],
+        subLostInRange:   analyticsStats[0][2],
+        watchTimeMinutes: analyticsStats[0][3],
+        watchTimeHours:  (analyticsStats[0][3] / 60).toFixed(2),
+      },
+      progres: {
+        subscriber:   (analyticsStats[0][1] - analyticsStats[0][2]),
+        views: (masterStats.subscriberCount - analyticsStats[0][0]),
+        watchTime: formatters.penguranganJam((analyticsStats[0][3] / 60).toFixed(2), (analyticsStats[1][3] / 60).toFixed(2))
+      }
+    }
   } catch (error) {
-    console.error("Error Analytics Range:", error);
-    throw error;
+    console.error("Error getChannelStatsAll:", error)
   }
-};
+}
 
 const getTop5Videos = async (
   startDate = formatters.formatDateToYYYYMMDD().pastDate, 
@@ -254,9 +317,10 @@ const getTop5Videos = async (
 
 module.exports = {
   upload,
-  getChannelStats,
+  // getChannelStats,
+  // getStatsByRange,
+  getChannelStatsAll,
   getFullVideoList,
   getChannelComments,
-  getStatsByRange,
   getTop5Videos,
 }

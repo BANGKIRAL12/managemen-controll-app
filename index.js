@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const http = require('http')
 const { Server } = require('socket.io');
-const { google } = require('googleapis');
 const { Readable } = require('stream');
 
 const app = express();
@@ -26,7 +25,6 @@ const gemini = require('./src/models/AI/Gemini.js')
 const oauth2Client = require('./src/config/config').oauth2Client
 
 const storage = multer.memoryStorage();
-
 const upload = multer({ 
     storage: storage,
     limits: {
@@ -54,12 +52,11 @@ app.get('/auth', (req, res) => {
 });
 
 // 2. Route Callback (Otomatis dipanggil setelah Anda klik "Allow")
-app.get('/ytcallback', async (req, res) => {
+app.get('/callback', async (req, res) => {
   const { code } = req.query;
   try {
     const { tokens } = await oauth2Client.getToken(code);
     
-    // INILAH YANG ANDA CARI
     console.log('--- REFRESH TOKEN ANDA ---');
     console.log(tokens.refresh_token);
     console.log('---------------------------');
@@ -117,10 +114,11 @@ app.post('/upload', upload.fields([
 app.get('/datas', async (req, res) => {
   try {
     const data = [
-      await yt.getChannelStats(),
+      // await yt.getChannelStats(),
+      // await yt.getStatsByRange(),
+      await yt.getChannelStatsAll(),
       await yt.getFullVideoList(),
       await yt.getChannelComments(),
-      await yt.getStatsByRange(),
       await yt.getTop5Videos(),
     ]
     res.json(data); // kirim object, bukan hanya subscriber

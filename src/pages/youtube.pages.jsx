@@ -22,7 +22,7 @@ const YoutubeView = ({
   ])
   const [stats, setStats] = useState({ 
     subscriber: 0,
-    views: 0 
+    watchTime: 0 
   });
   const [videos, setVideos] = useState([
     { id: '1', title: 'Tutorial React Dasar untuk Pemula', views: '1.2K', date: '01 Okt 2023', duration: '12:45', thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80' },
@@ -44,10 +44,10 @@ const YoutubeView = ({
         return res.json();
       })
       .then(data => {
-        setStats(data[0]);
+        setStats(data[0].count);
         setVideos(data[1])
         setInitialComments(data[2])
-        setTopVideo(data[4])
+        setTopVideo(data[3])
         setLoading(false);
       })
       .catch(err => {
@@ -72,12 +72,12 @@ const YoutubeView = ({
   const isDark = theme === 'dark';
 
   const colors = {
-    bg: isDark ? '#0F0F0F' : '#F9F9F9',
+    bg:       isDark ? '#0F0F0F' : '#F9F9F9',
     textMain: isDark ? '#FFFFFF' : '#0F0F0F',
-    textSub: isDark ? '#AAAAAA' : '#606060',
-    border: isDark ? '#2D2D2D' : '#E5E5E5',
-    cardBg: isDark ? '#1E1E1E' : '#FFFFFF',
-    inputBg: isDark ? '#121212' : '#FFFFFF',
+    textSub:  isDark ? '#AAAAAA' : '#606060',
+    border:   isDark ? '#2D2D2D' : '#E5E5E5',
+    cardBg:   isDark ? '#1E1E1E' : '#FFFFFF',
+    inputBg:  isDark ? '#121212' : '#FFFFFF',
   };
 
   const handleTagsChange = (e) => {
@@ -325,7 +325,7 @@ const YoutubeView = ({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
             <StatCard theme={theme} bg={'#EF4444'} icon={<i className="fa-solid fa-user-plus" style={{ color: '#ffffff' }}></i>} label="Subscriber" value={stats.subscriber} />
             <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.likes || 0} />
-            <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jumlah Tonton" value={stats.views} />
+            <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jumlah Tonton" value={stats.watchTime} />
           </div>
         </div>
 

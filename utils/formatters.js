@@ -38,7 +38,25 @@ function formatDateToYYYYMMDD(tanggal = new Date(), rentang = 28) {
   }
 }
 
+function penguranganJam(jam1, jam2) {
+  const [jam1H, jam1M] = jam1.split('.').map(Number);
+  const [jam2H, jam2M] = jam2.split('.').map(Number);
+
+  const totalMenit1 = jam1H * 60 + jam1M;
+  const totalMenit2 = jam2H * 60 + jam2M;
+
+  const selisihMenit = totalMenit1 - totalMenit2;
+
+  const absSelisihMenit = Math.abs(selisihMenit)
+
+  const jam = Math.floor(selisihMenit / 60);
+  const menit = absSelisihMenit % 60;
+
+  return `${jam}.${menit.toString().padStart(2, '0')}`;
+}
+
 module.exports = { 
   formatDurationISOtoMMSS,
-  formatDateToYYYYMMDD 
+  formatDateToYYYYMMDD,
+  penguranganJam 
 }
