@@ -14,7 +14,7 @@ const StatCard = ({ icon, label, value, theme, bg }) => {
   );
 };
 
-const DataCard = ({ theme, dataVideo }) => {
+const DataCard = ({ theme, dataVideo, statistik }) => {
   const isDark = theme === 'dark';
   const s = {
     container: {
@@ -82,13 +82,13 @@ const DataCard = ({ theme, dataVideo }) => {
         <h1 style={s.judul}>Ringkasan</h1>
         <hr style={s.garis}></hr>
         <div>
-          <h1 style={s.dataCount}>224</h1>
+          <h1 style={s.dataCount}>{statistik.count.views}</h1>
           <p style={s.dataJudul}>Views • Last 48 hours</p>
         </div>
         <hr style={s.garis}></hr>
         <div>
           <i style={{margin: '50px 20px'}}>Top Content</i>
-          <div  style={{overflowY: 'auto', height: '200px', borderRadius: '20px' }} className="custom-scroll" >
+          <div style={{overflowY: 'auto', height: '200px', borderRadius: '20px' }} className="custom-scroll" >
             {dataVideo.map(v => (
               <div key={v.id} style={s.video}>
                 <img
@@ -108,10 +108,10 @@ const DataCard = ({ theme, dataVideo }) => {
       </div>
 
       <div style={s.containerMini}>
-        <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#f431f7'}}></div>
-        <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#12e095'}}></div>
-        <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#25dbe8'}}></div>
-        <div style={{width: '45%', aspectRatio: '1/1', backgroundColor: 'red', margin: 'auto', borderRadius: '20px', background: '#9b43e8'}}></div>
+        <MiniStatsCard bg={'#f431f7'} label={'subscriber'} value={statistik.progres.subscriber}/>
+        <MiniStatsCard bg={'#12e095'} label={'watch time'} value={statistik.progres.watchTime}/>
+        <MiniStatsCard bg={'#25dbe8'} label={'views'} value={statistik.progres.views}/>
+        <MiniStatsCard bg={'#9b43e8'} label={'likes'} value={'49'}/>
       </div>
 
       <style>{`
@@ -123,6 +123,17 @@ const DataCard = ({ theme, dataVideo }) => {
       input[type="radio"] { accent-color: #CC0000; scale: 1.2; }
       `}</style>
 
+    </div>
+  )
+}
+
+const MiniStatsCard = ({ bg, label, value }) => {
+  return (
+    <div style={{width: '45%', aspectRatio: '1/1', margin: 'auto', borderRadius: '20px', background: bg}}>
+      <div style={{margin: '0 20px', fontFamily: 'monospace'}}>
+        <h1 style={{margin: '10px 0px 0 0', fontSize: '40px'}}>{value}</h1>
+        <p>{label}</p>
+      </div>
     </div>
   )
 }

@@ -34,6 +34,23 @@ const YoutubeView = ({
   const [topVideo, setTopVideo] = useState([
 
   ])
+  const [statsData, setStatsData] = useState({
+    count: {
+      subscriber: "0",
+      views: "0",
+      watchTime: "0.00",
+      viewsInRange: 0,
+      subGainedInRange: 0,
+      subLostInRange: 0,
+      watchTimeMinutes: 0,
+      watchTimeHours: "0.00"
+    },
+      progres: {
+      subscriber: 0,
+      views: 0,
+      watchTime: "0.00"
+    }
+  })
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,6 +62,7 @@ const YoutubeView = ({
       })
       .then(data => {
         setStats(data[0].count);
+        setStatsData(data[0])
         setVideos(data[1])
         setInitialComments(data[2])
         setTopVideo(data[3])
@@ -382,7 +400,7 @@ const YoutubeView = ({
           </div>
 
           <div style={{width: '25%', display: 'flex', justifyContent: 'center'}}>
-            <DataCard theme={theme} dataVideo={topVideo} />
+            <DataCard theme={theme} dataVideo={topVideo} statistik={statsData} />
           </div>
         </div>
         
