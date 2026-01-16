@@ -53,15 +53,22 @@ app.get('/auth', (req, res) => {
 
 // 2. Route Callback (Otomatis dipanggil setelah Anda klik "Allow")
 app.get('/callback', async (req, res) => {
-  const { code } = req.query;
+  const { media } = req.query;
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-    
-    console.log('--- REFRESH TOKEN ANDA ---');
-    console.log(tokens.refresh_token);
-    console.log('---------------------------');
-    
-    res.send('Berhasil! Silakan cek terminal/console Anda untuk melihat Refresh Token.');
+    if ( media === 'google' ) {
+      const { code } = req.query
+      const { tokens } = await oauth2Client.getToken(code);
+      
+      console.log('--- REFRESH TOKEN ANDA ---');
+      console.log(tokens.refresh_token);
+      console.log('---------------------------');
+      
+      res.send('Berhasil! Silakan cek terminal/console Anda untuk melihat Refresh Token.');
+
+    }
+    else {
+      res.send('404 Not Fount')
+    }
   } catch (error) {
     res.status(500).send('Error saat menukar kode: ' + error.message);
   }

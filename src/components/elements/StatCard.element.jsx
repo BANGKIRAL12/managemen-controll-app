@@ -108,10 +108,10 @@ const DataCard = ({ theme, dataVideo, statistik }) => {
       </div>
 
       <div style={s.containerMini}>
-        <MiniStatsCard bg={'#f431f7'} label={'subscriber'} value={statistik.progress.subGrowth}/>
+        <MiniStatsCard bg={'#f431f7'} label={'subscriber'} value={statistik.progress.subGrowth} />
         <MiniStatsCard bg={'#12e095'} label={'watch time'} value={statistik.progress.watchTimeDiff}/>
-        <MiniStatsCard bg={'#25dbe8'} label={'views'} value={statistik.progress.viewsDiff}/>
-        <MiniStatsCard bg={'#9b43e8'} label={'likes'} value={statistik.progress.likesDiff}/>
+        <MiniStatsCard bg={'#25dbe8'} label={'views'} value={statistik.progress.viewsDiff} trend={statistik.progress.isViewsUp ? "up" : "down"} change={statistik.progress.likesPercentage} faIcon={'fas fa-users'} />
+        <MiniStatsCard bg={'#9b43e8'} label={'likes'} value={statistik.progress.likesDiff} trend={statistik.progress.isLikesUp ? "up" : "down"} change={statistik.progress.viewsPercentage} faIcon={'fas fa-users'} />
       </div>
 
       <style>{`
@@ -127,16 +127,107 @@ const DataCard = ({ theme, dataVideo, statistik }) => {
   )
 }
 
-const MiniStatsCard = ({ bg, label, value }) => {
+const MiniStatsCard = ({ label, value, change, trend, faIcon, bg }) => {
+  // Objek gaya untuk kartu individual
+  const cardStyle = {
+    width: '45%',
+    aspectRatio: '1 / 1',
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: '1.5rem',
+    background: bg,
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    transition: 'transform 0.2s ease-in-out',
+    cursor: 'pointer',
+    margin: 'auto',
+  };
+
+  const overlayStyle = {
+    position: 'absolute',
+    top: '-3rem',
+    right: '-3rem',
+    width: '8rem',
+    height: '8rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '50%',
+    filter: 'blur(32px)',
+  };
+
+  const contentStyle = {
+    position: 'relative',
+    height: '100%',
+    width: '100%',
+    padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    boxSizing: 'border-box',
+  };
+
+  const iconWrapperStyle = {
+    padding: '0.5rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: '0.5rem',
+    backdropFilter: 'blur(8px)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const trendStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+    fontSize: '0.75rem',
+    fontWeight: 'bold',
+    color: trend === 'up' ? '#6ee7b7' : '#fda4af',
+  };
+
   return (
-    <div style={{width: '45%', aspectRatio: '1/1', margin: 'auto', borderRadius: '20px', background: bg}}>
-      <div style={{margin: '0 20px', fontFamily: 'monospace'}}>
-        <h1 style={{margin: '10px 0px 0 0', fontSize: '40px'}}>{value}</h1>
-        <p>{label}</p>
+    <div 
+      style={cardStyle}
+      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+    >
+      <div style={overlayStyle}></div>
+      
+      <div style={contentStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={iconWrapperStyle}>
+            {/* Font Awesome Icon */}
+            <i className={faIcon} style={{ color: 'white', fontSize: '1.1rem' }}></i>
+          </div>
+          <div style={trendStyle}>
+            <i className={trend === 'up' ? 'fas fa-arrow-trend-up' : 'fas fa-arrow-trend-down'} style={{ fontSize: '0.8rem' }}></i>
+            {change}
+          </div>
+        </div>
+        
+        <div style={{ marginTop: 'auto' }}>
+          <p style={{ 
+            color: 'rgba(255, 255, 255, 0.8)', 
+            fontSize: '0.75rem', 
+            fontWeight: '500', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.05em',
+            margin: '0 0 0.125rem 0'
+          }}>
+            {label}
+          </p>
+          <h3 style={{ 
+            fontSize: '1.5rem', 
+            fontWeight: '900', 
+            color: 'white', 
+            margin: 0,
+            lineHeight: 1 
+          }}>
+            {value}
+          </h3>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 window.StatCard = StatCard
 window.DataCard = DataCard
