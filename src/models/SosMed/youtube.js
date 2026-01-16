@@ -172,6 +172,7 @@ const getChannelDashboardStats = async (
         global: {
           subscriber: masterStats.subscriberCount,
           totalViews: masterStats.viewCount,
+          watchTimeLastYear: (statsYear[0] / 60).toFixed(1),
           totalLikes: totalLikes50Videos,
         },
         range: {

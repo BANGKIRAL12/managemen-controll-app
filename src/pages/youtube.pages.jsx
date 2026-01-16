@@ -61,11 +61,11 @@ const YoutubeView = ({
         return res.json();
       })
       .then(data => {
-        setStats(data[0].count);
-        setStatsData(data[0])
-        setVideos(data[1])
-        setInitialComments(data[2])
-        setTopVideo(data[3])
+        setStats(data[1].stats.global);
+        setStatsData(data[1].stats)
+        setVideos(data[1].videos)
+        setInitialComments(data[1].comments)
+        setTopVideo(data[0])
         setLoading(false);
       })
       .catch(err => {
@@ -342,7 +342,7 @@ const YoutubeView = ({
           <div style={s.sectionTitle}>Ringkasan Performa</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
             <StatCard theme={theme} bg={'#EF4444'} icon={<i className="fa-solid fa-user-plus" style={{ color: '#ffffff' }}></i>} label="Subscriber" value={stats.subscriber} />
-            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.likes || 0} />
+            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.totalViews || 0} />
             <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jumlah Tonton" value={stats.watchTime} />
           </div>
         </div>
