@@ -63,73 +63,143 @@ async function uploadThumbnail(videoId, buffer, mimeType) {
   console.log('Thumbnail berhasil dipasang!');
 }
 
-const getFullVideoList = async () => {
-
-  // 1. Dapatkan ID playlist "Uploads"
-  const channelRes = await youtube.channels.list({ part: 'contentDetails', mine: true });
-  const uploadsId = channelRes.data.items[0].contentDetails.relatedPlaylists.uploads;
-
-  // 2. Ambil daftar dasar video
-  const playlistRes = await youtube.playlistItems.list({
-    part: 'snippet,contentDetails',
-    playlistId: uploadsId,
-    maxResults: 50
-  });
-  
-  const videoIds = playlistRes.data.items.map(v => v.contentDetails.videoId).join(',');
-  
-  // 3. Ambil Detail (Penayangan & Durasi)
-  const detailRes = await youtube.videos.list({
-    part: 'statistics,contentDetails',
-    id: videoIds
-  });
-
-  // Gabungkan Data
-  return playlistRes.data.items.map((item, index) => {
-    const detail = detailRes.data.items[index];
-    return {
-      id: item.contentDetails.videoId,
-      title: item.snippet.title,
-      views: detail.statistics.viewCount,
-      date: item.snippet.publishedAt,
-      duration: formatters.formatDurationISOtoMMSS(detail.contentDetails.duration), // Format ISO 8601 (misal: PT5M20S)
-      thumbnail: item.snippet.thumbnails.high.url
-    };
-  });
-}
-
-// Fungsi Utama: Mengambil SEMUA komentar di Channel
-const getChannelComments = async () => {
+const getChannelDashboardStats = async (
+  startDate = formatters.formatDateToYYYYMMDD().pastDate, 
+  endDate = formatters.formatDateToYYYYMMDD().today
+) => {
   try {
-    // 1. Dapatkan playlist "uploads" untuk melihat semua video
+
+    // Hitung tanggal untuk periode sebelumnya (untuk mencari progres/perbandingan)
+    const tglStart = new Date(startDate);
+    const tglPrevStart = new Date(tglStart);
+    tglPrevStart.setDate(tglStart.getDate() - 28);
+    const startDateSebelumnya = tglPrevStart.toISOString().split('T')[0];
+    const endDateSebelumnya = new Date(tglStart.getTime() - 86400000).toISOString().split('T')[0];
+
+    // 1. LANGKAH AWAL (Hanya 1x panggil untuk info Channel & Playlist Upload)
     const channelRes = await youtube.channels.list({
-      part: 'contentDetails',
+      part: 'snippet,statistics,contentDetails',
       mine: true
     });
-    const uploadsPlaylistId = channelRes.data.items[0].contentDetails.relatedPlaylists.uploads;
+    
+    const channelData = channelRes.data.items[0];
+    const masterStats = channelData.statistics;
+    const uploadsPlaylistId = channelData.contentDetails.relatedPlaylists.uploads;
 
-    // 2. Ambil daftar video (limit 50 video terbaru)
+    // 2. AMBIL DAFTAR VIDEO (Hanya 1x panggil untuk 50 video terbaru)
     const playlistRes = await youtube.playlistItems.list({
-      part: 'snippet',
+      part: 'snippet,contentDetails',
       playlistId: uploadsPlaylistId,
       maxResults: 50 
     });
 
-    const daftarVideo = playlistRes.data.items;
-    let semuaKomentar = [];
+    const items = playlistRes.data.items;
+    const videoIds = items.map(v => v.contentDetails.videoId).join(',');
 
-    // 3. Loop setiap video untuk ambil komentarnya
-    for (const video of daftarVideo) {
-      const videoId = video.snippet.resourceId.videoId;
-      const judulVideo = video.snippet.title;
+    // 3. JALANKAN PROSES PARALEL (Mengambil Detail Video, Analytics, dan Komentar sekaligus)
+    // Ini menghemat waktu eksekusi karena semua request berjalan bersamaan
+    const [detailRes, analyticsRes, analyticsPrevRes, analyticsYearRes, commentsData] = await Promise.all([
+      // Detail Video (Views, Duration, Likes)
+      youtube.videos.list({ part: 'statistics,contentDetails', id: videoIds }),
       
-      const komentarVideo = await getKomentarPerVideo(videoId, judulVideo);
-      semuaKomentar = semuaKomentar.concat(komentarVideo);
-    }
+      // Analytics Rentang Waktu
+      analytics.reports.query({
+        ids: 'channel==MINE',
+        startDate: startDate,
+        endDate: endDate,
+        metrics: 'views,subscribersGained,subscribersLost,likes,estimatedMinutesWatched',
+      }),
+      
+      // Analytics Tahunan
+      analytics.reports.query({
+        ids: 'channel==MINE',
+        startDate: formatters.formatDateToYYYYMMDD(new Date(), 365).pastDate,
+        endDate: endDate,
+        metrics: 'views,subscribersGained,subscribersLost,likes,estimatedMinutesWatched',
+      }),
 
-    return semuaKomentar;
+      analytics.reports.query({
+        ids: 'channel==MINE',
+        startDate: startDateSebelumnya,
+        endDate: endDateSebelumnya,
+        metrics: 'views,likes',
+      }),
+
+      // Ambil Komentar (Looping internal tetap terjadi tapi dijalankan secara paralel)
+      Promise.all(items.map(v => getKomentarPerVideo(v.contentDetails.videoId, v.snippet.title)))
+    ]);
+
+    // --- PENGOLAHAN DATA ---
+
+    // A. Olah Video List
+    const videoList = items.map((item, index) => {
+      const detail = detailRes.data.items[index];
+      return {
+        id: item.contentDetails.videoId,
+        title: item.snippet.title,
+        views: detail.statistics.viewCount,
+        likes: detail.statistics.likeCount,
+        date: item.snippet.publishedAt,
+        duration: formatters.formatDurationISOtoMMSS(detail.contentDetails.duration),
+        thumbnail: item.snippet.thumbnails.high.url
+      };
+    });
+
+    // B. Hitung Total Like dari 50 video terbaru
+    const totalLikes50Videos = detailRes.data.items.reduce((acc, curr) => acc + parseInt(curr.statistics.likeCount || 0), 0);
+
+    // C. Olah Komentar (Meratakan array of arrays menjadi satu array saja)
+    const allComments = commentsData.flat();
+
+    // D. Olah Analytics
+    const statsNow = analyticsRes.data.rows ? analyticsRes.data.rows[0] : [0, 0, 0, 0, 0];
+    const statsPrev = analyticsPrevRes.data.rows ? analyticsPrevRes.data.rows[0] : [0, 0];
+    const statsYear = analyticsYearRes.data.rows ? analyticsYearRes.data.rows[0] : [0, 0, 0, 0, 0];
+
+    // Hitung persentase kenaikan/penurunan
+    // Hitung Progres Like
+    const diffLikes = statsNow[3] - statsPrev[1];
+    const likesPerc = statsPrev[1] === 0 ? 100 : ((diffLikes / statsPrev[1]) * 100).toFixed(1);
+
+    // Hitung Progres View
+    const diffViews = statsNow[0] - statsPrev[0];
+    const viewsPerc = statsPrev[0] === 0 ? 100 : ((diffViews / statsPrev[0]) * 100).toFixed(1);
+
+    return {
+      videos: videoList,
+      comments: allComments,
+      stats: {
+        global: {
+          subscriber: masterStats.subscriberCount,
+          totalViews: masterStats.viewCount,
+          totalLikes: totalLikes50Videos,
+        },
+        range: {
+          views: statsNow[0],
+          subGained: statsNow[1],
+          subLost: statsNow[2],
+          netSubs: statsNow[1] - statsNow[2],
+          likes: statsNow[3],
+          watchTimeHours: (statsNow[4] / 60).toFixed(2)
+        },
+        progress: {
+          subGrowth: (statsNow[1] - statsNow[2]),
+          // viewDiff: (masterStats.viewCount - statsNow[0]),
+          // Progres Like
+          likesDiff: diffLikes,
+          likesPercentage: likesPerc,
+          isLikesUp: diffLikes >= 0,
+          
+          // Progres Views
+          viewsDiff: diffViews,
+          viewsPercentage: viewsPerc,
+          isViewsUp: diffViews >= 0,
+          watchTimeDiff: formatters.penguranganJam((statsNow[4] / 60).toFixed(2), (statsYear[4] / 60).toFixed(2))
+        }
+      }
+    };
   } catch (error) {
-    console.error("Error ambilSemuaKomentarChannel:", error);
+    console.error("Error in getSuperDashboardData:", error);
     throw error;
   }
 };
@@ -159,112 +229,6 @@ const getKomentarPerVideo = async (videoId, judulVideo) => {
     return [];
   }
 };
-
-// const getStatsByRange = async (
-//   startDate = formatters.formatDateToYYYYMMDD().pastDate, 
-//   endDate = formatters.formatDateToYYYYMMDD().today
-// ) => {
-//   try {
-//     const res = await analytics.reports.query({
-//       ids: 'channel==MINE',
-//       startDate: startDate,
-//       endDate: endDate,
-//       // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
-//       metrics: 'views,subscribersGained,estimatedMinutesWatched',
-//     });
-    
-//     const data = res.data.rows[0];
-//     return {
-//       count: {
-//         views: data[0],
-//         subscribers: data[1],
-//         watchTimeMinutes: data[2],
-//         watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
-//       },
-//       progres: {
-//         views: data[0],
-//         subscribers: data[1],
-//         watchTimeMinutes: data[2],
-//         watchTimeHours: (data[2] / 60).toFixed(2) // Konversi ke Jam
-//       }
-//     };
-//   } catch (error) {
-//     console.error("Error Analytics Range:", error);
-//     throw error;
-//   }
-// };
-
-// const getChannelStats = async () => {
-//   const res = await youtube.channels.list({
-//     part: 'statistics',
-//     mine: true // Mengambil data channel milik akun yang login
-//   });
-
-//   const stats = res.data.items[0].statistics;
-//   // console.log('Subscriber:', stats.subscriberCount);
-//   // console.log('Total View:', stats.viewCount);
-//   // console.log('Total Video:', stats.videoCount);
-
-//   return {
-//     subscriber: stats.subscriberCount,
-//     views: stats.viewCount
-//   }
-// }
-
-const getChannelStatsAll = async (
-  startDate = formatters.formatDateToYYYYMMDD().pastDate, 
-  endDate = formatters.formatDateToYYYYMMDD().today
-) => {
-  try {
-    const channelRes = await youtube.channels.list({
-      part: 'snippet,statistics,contentDetails',
-      mine: true // Mengambil data channel milik akun yang login
-    });
-    const channelData       = channelRes.data.items[0];
-    const masterStats       = channelData.statistics;
-    const uploadsPlaylistId = channelData.contentDetails.relatedPlaylists.uploads;
-
-    const analyticsRes = await analytics.reports.query({
-      ids: 'channel==MINE',
-      startDate: startDate,
-      endDate: endDate,
-      // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
-      metrics: 'views,subscribersGained,subscribersLost,estimatedMinutesWatched',
-    });
-    const analyticsOnYear = await analytics.reports.query({
-      ids: 'channel==MINE',
-      startDate: formatters.formatDateToYYYYMMDD(new Date(), 365).pastDate,
-      endDate: endDate,
-      // metrics yang diminta: views, subscriber, dan jam tayang (dalam menit)
-      metrics: 'views,subscribersGained,subscribersLost,estimatedMinutesWatched',
-    });
-    const analyticsStats = [
-      analyticsRes.data.rows    ? analyticsRes.data.rows[0] : [0, 0, 0],
-      analyticsOnYear.data.rows ? analyticsOnYear.data.rows[0] : [0, 0, 0]
-    ] 
-
-    return {
-      count: {
-        subscriber: masterStats.subscriberCount,
-        views:      masterStats.viewCount,
-        watchTime:       (analyticsStats[0][3] / 60).toFixed(2),
-        
-        viewsInRange:     analyticsStats[0][0],
-        subGainedInRange: analyticsStats[0][1],
-        subLostInRange:   analyticsStats[0][2],
-        watchTimeMinutes: analyticsStats[0][3],
-        watchTimeHours:  (analyticsStats[0][3] / 60).toFixed(2),
-      },
-      progres: {
-        subscriber:   (analyticsStats[0][1] - analyticsStats[0][2]),
-        views: (masterStats.subscriberCount - analyticsStats[0][0]),
-        watchTime: formatters.penguranganJam((analyticsStats[0][3] / 60).toFixed(2), (analyticsStats[1][3] / 60).toFixed(2))
-      }
-    }
-  } catch (error) {
-    console.error("Error getChannelStatsAll:", error)
-  }
-}
 
 const getTop5Videos = async (
   startDate = formatters.formatDateToYYYYMMDD().pastDate, 
@@ -317,10 +281,6 @@ const getTop5Videos = async (
 
 module.exports = {
   upload,
-  // getChannelStats,
-  // getStatsByRange,
-  getChannelStatsAll,
-  getFullVideoList,
-  getChannelComments,
   getTop5Videos,
+  getChannelDashboardStats,
 }

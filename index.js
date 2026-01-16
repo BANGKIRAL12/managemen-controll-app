@@ -114,12 +114,8 @@ app.post('/upload', upload.fields([
 app.get('/datas', async (req, res) => {
   try {
     const data = [
-      // await yt.getChannelStats(),
-      // await yt.getStatsByRange(),
-      await yt.getChannelStatsAll(),
-      await yt.getFullVideoList(),
-      await yt.getChannelComments(),
       await yt.getTop5Videos(),
+      await yt.getChannelDashboardStats(),
     ]
     res.json(data); // kirim object, bukan hanya subscriber
   } catch (err) {
