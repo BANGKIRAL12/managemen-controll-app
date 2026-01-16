@@ -35,20 +35,29 @@ const YoutubeView = ({
 
   ])
   const [statsData, setStatsData] = useState({
-    count: {
+    global: {
       subscriber: "0",
-      views: "0",
-      watchTime: "0.00",
-      viewsInRange: 0,
-      subGainedInRange: 0,
-      subLostInRange: 0,
-      watchTimeMinutes: 0,
+      totalViews: "0",
+      watchTimeLastYear: "0.00",
+      totalLikes: 0
+    },
+      range: {
+      views: 0,
+      subGained: 0,
+      subLost: 0,
+      netSubs: 0,
+      likes: 0,
       watchTimeHours: "0.00"
     },
-      progres: {
-      subscriber: 0,
-      views: 0,
-      watchTime: "0.00"
+      progress: {
+      subGrowth: 0,
+      likesDiff: 0,
+      likesPercentage: "0.0",
+      isLikesUp: false,
+      viewsDiff: 0,
+      viewsPercentage: "0.0",
+      isViewsUp: false,
+      watchTimeDiff: "0.00"
     }
   })
   const [loading, setLoading] = useState(true);
@@ -342,8 +351,8 @@ const YoutubeView = ({
           <div style={s.sectionTitle}>Ringkasan Performa</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
             <StatCard theme={theme} bg={'#EF4444'} icon={<i className="fa-solid fa-user-plus" style={{ color: '#ffffff' }}></i>} label="Subscriber" value={stats.subscriber} />
-            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.totalViews || 0} />
-            <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jumlah Tonton" value={stats.watchTime} />
+            <StatCard theme={theme} bg={'#3B82F6'} icon={<i className="fa-solid fa-thumbs-up" style={{ color: '#ffffff' }}></i>} label="Total Suka" value={stats.totalLikes} />
+            <StatCard theme={theme} bg={'#10B981'} icon={<i className="fa-solid fa-hourglass-half" style={{ color: '#ffffff' }}></i>} label="Jam Tayang" value={stats.watchTimeLastYear} />
           </div>
         </div>
 

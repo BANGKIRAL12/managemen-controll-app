@@ -82,7 +82,7 @@ const DataCard = ({ theme, dataVideo, statistik }) => {
         <h1 style={s.judul}>Ringkasan</h1>
         <hr style={s.garis}></hr>
         <div>
-          <h1 style={s.dataCount}>{statistik.count.views}</h1>
+          <h1 style={s.dataCount}>{statistik.global.totalViews}</h1>
           <p style={s.dataJudul}>Views • Last 48 hours</p>
         </div>
         <hr style={s.garis}></hr>
@@ -108,10 +108,10 @@ const DataCard = ({ theme, dataVideo, statistik }) => {
       </div>
 
       <div style={s.containerMini}>
-        <MiniStatsCard bg={'#f431f7'} label={'subscriber'} value={statistik.progres.subscriber}/>
-        <MiniStatsCard bg={'#12e095'} label={'watch time'} value={statistik.progres.watchTime}/>
-        <MiniStatsCard bg={'#25dbe8'} label={'views'} value={statistik.progres.views}/>
-        <MiniStatsCard bg={'#9b43e8'} label={'likes'} value={'49'}/>
+        <MiniStatsCard bg={'#f431f7'} label={'subscriber'} value={statistik.progress.subGrowth}/>
+        <MiniStatsCard bg={'#12e095'} label={'watch time'} value={statistik.progress.watchTimeDiff}/>
+        <MiniStatsCard bg={'#25dbe8'} label={'views'} value={statistik.progress.viewsDiff}/>
+        <MiniStatsCard bg={'#9b43e8'} label={'likes'} value={statistik.progress.likesDiff}/>
       </div>
 
       <style>{`
