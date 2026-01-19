@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const http = require('http')
+const println = require('./utils/println')
 const { Server } = require('socket.io');
 const { Readable } = require('stream');
 
@@ -71,6 +72,7 @@ app.get('/callback', async (req, res) => {
     }
   } catch (error) {
     res.status(500).send('Error saat menukar kode: ' + error.message);
+    println.error('get', 'callback; Error saat menukar kode: ' + error.message)
   }
 });
 
@@ -83,6 +85,7 @@ app.post('/upload', upload.fields([
       const { title, description, tags, categoryId, status, date } = req.body;
 
       if (!req.files.videoFile || !req.files.imageFile) {
+        println.warn('post', 'upload; User tidak lengkap dalam mengisi file upload')
         return res.status(400).json({ error: "File tidak lengkap" });
       }
       
@@ -112,9 +115,10 @@ app.post('/upload', upload.fields([
       const videoId = await yt.upload(dataPayload);
 
       res.status(200).json({ message: 'Upload Berhasil!', videoId });
+      println.info('post', 'upload; Berhasil melakukan upload video' , videoId)
 
   } catch (error) {
-      console.error('Upload Error:', error);
+      println.error('post', 'upload; Error', error)
       res.status(500).json({ error: 'Terjadi kesalahan di server.' });
   }
 });
@@ -125,8 +129,9 @@ app.get('/datas', async (req, res) => {
       await yt.getChannelDashboardStats(),
     ]
     res.json(data); // kirim object, bukan hanya subscriber
+    println.info('get', 'datas; mengambil data dari youtube')
   } catch (err) {
-    console.error("Error /datas:", err.message);
+    println.error('get', 'datas; ', err.message)
     res.status(500).json({
       error: "Gagal mengambil data channel"
     });
