@@ -136,3 +136,5 @@ Dalam contoh di atas:
 
 Dengan cara ini, kamu dapat menggunakan tombol kustom untuk navigasi antar halaman dalam aplikasi React-mu.
 
+Ground v1.0.0 - cahya server is ready
+server listening on http://localhost:1234
