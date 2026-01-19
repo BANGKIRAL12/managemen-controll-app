@@ -6,6 +6,7 @@ require('openai').OpenAIApi
 
 const axios = require('axios');
 const fetch = require("node-fetch");
+const println = require('../../../utils/println')
 const model = 'gpt-4o-mini'; // Atau bisa menggunakan gpt-4 atau model lain
 
 const readline = require('readline');
@@ -84,6 +85,7 @@ let AIDatas = [
 
 async function getGPTResponse(prompt, socket) {
     if (!prompt) return;
+    println.info('get', "gemini; mengambil response dari assistant")
   
     AIDatas.push({ role: "user", content: prompt });
     let fullAnswer = "";
@@ -107,7 +109,7 @@ async function getGPTResponse(prompt, socket) {
   
       if (!response.ok) {
         const err = await response.text();
-        console.error("OpenAI Error:", err);
+        println.error('post', "gpt; Error saat me response:", err);
         socket.emit("AiResponse", "❌ AI gagal merespons");
         return;
       }
@@ -139,12 +141,12 @@ async function getGPTResponse(prompt, socket) {
       });
   
     } catch (err) {
-      console.error("GPT STREAM ERROR:", err);
+      println.error('post', "gpt; Error saat melakukan stream:", err)
       socket.emit("AiResponse", "⚠️ Terjadi kesalahan pada AI.");
     }
 }
   
 // ================== EXPORT ==================
 module.exports = {
-getGPTResponse
+  getGPTResponse
 };

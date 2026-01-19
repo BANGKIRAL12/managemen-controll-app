@@ -1,4 +1,5 @@
 require("dotenv").config();
+const println = require('../../../utils/println')
 const axios = require("axios");
 
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -33,6 +34,7 @@ let chatHistory = [
  */
 async function getGeminiResponse(prompt, socket) {
   if (!prompt) return;
+  println.info('get', "gemini; mengambil response dari assistant")
 
   chatHistory.push({
     role: "user",
@@ -85,12 +87,12 @@ async function getGeminiResponse(prompt, socket) {
     });
 
     response.data.on("error", err => {
-      console.error("Gemini Stream Error:", err.message);
+      println.error('post', "gemini; Error saat melakukan stream:", err.message)
       socket.emit("AiResponse", "❌ Gemini gagal merespons.");
     });
-
+    
   } catch (err) {
-    console.error("Gemini Fatal Error:", err.message);
+    println.error('post', "gemini; Fatal Error:", err.message)
     socket.emit("AiResponse", "⚠️ Terjadi kesalahan pada Gemini AI.");
   }
 }
