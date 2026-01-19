@@ -1,4 +1,5 @@
 const fs = require('fs');
+const println = require('../../../utils/println')
 const { google } = require('googleapis');
 const { Readable } = require('stream');
 
@@ -23,29 +24,35 @@ function bufferToStream(buffer) {
 
 const upload = async (data) => {
 
-  const res = await youtube.videos.insert({
-    part: 'snippet,status', // Menentukan bagian mana yang ingin diatur
-    requestBody: {
-      snippet: {
-        title: data.title,
-        description: data.description,
-        tags: data.tags,
-        categoryId: data.categoryId, // 27 adalah Education, 22 adalah People & Blogs
-        defaultLanguage: 'id',
-        defaultAudioLanguage: 'id'
+  println.info('post', 'upload; Sedang melakukan upload video')
+  try {
+    const res = await youtube.videos.insert({
+      part: 'snippet,status', // Menentukan bagian mana yang ingin diatur
+      requestBody: {
+        snippet: {
+          title: data.title,
+          description: data.description,
+          tags: data.tags,
+          categoryId: data.categoryId, // 27 adalah Education, 22 adalah People & Blogs
+          defaultLanguage: 'id',
+          defaultAudioLanguage: 'id'
+        },
+        status: {
+          privacyStatus: data.status,
+          selfDeclaredMadeForKids: false,
+          publishAt: data.publishDate || null // Opsional: jika ingin dijadwalkan (privasi harus 'private')
+        }
       },
-      status: {
-        privacyStatus: data.status,
-        selfDeclaredMadeForKids: false,
-        publishAt: data.publishDate || null // Opsional: jika ingin dijadwalkan (privasi harus 'private')
+      media: {
+        body: data.videoStream,
       }
-    },
-    media: {
-      body: data.videoStream,
-    }
-  });
+    });
+  
+    println.info('post', 'upload; Mendapat ID video upload', res.data.id)
 
-  console.log('Video ID:', res.data.id);
+  } catch (err) {
+    println.error('post', 'upload; Gagal mengupload video: ' + err)
+  }
   
   // Jika ingin upload THUMBNAIL setelah video sukses:
   await uploadThumbnail(res.data.id, data.thumbBuffer, data.thumbMime);
@@ -60,7 +67,7 @@ async function uploadThumbnail(videoId, buffer, mimeType) {
       body: bufferToStream(buffer)
     }
   });
-  console.log('Thumbnail berhasil dipasang!');
+  println.info('post', 'upload; Berhasil memasang tumnail pada video')
 }
 
 const getChannelDashboardStats = async (
@@ -200,7 +207,7 @@ const getChannelDashboardStats = async (
       }
     };
   } catch (error) {
-    console.error("Error in getSuperDashboardData:", error);
+    println.error('get', 'Error saat memperoses data statistik dashboard channel')
     throw error;
   }
 };
@@ -226,7 +233,7 @@ const getKomentarPerVideo = async (videoId, judulVideo) => {
       };
     });
   } catch (error) {
-    console.error(`Gagal mengambil komentar untuk video ${videoId}:`, error.message);
+    println.warn('get', `Gagal mengambil komentar video ${videoId}:`, error.message)
     return [];
   }
 };
@@ -274,6 +281,7 @@ const getTop5Videos = async (
     });
   } catch (error) {
     console.error("Error Top 5 Lengkap:", error);
+    println.error('get', "Error menampilkan data 5 video teratas")
     throw error;
   }
 };

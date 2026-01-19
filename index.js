@@ -49,6 +49,7 @@ app.get('/auth', (req, res) => {
       'https://www.googleapis.com/auth/yt-analytics.readonly'
     ]
   });
+  println.info('get', 'auth; Melakukan authentication akun')
   res.redirect(url);
 });
 
@@ -60,6 +61,7 @@ app.get('/callback', async (req, res) => {
       const { code } = req.query
       const { tokens } = await oauth2Client.getToken(code);
       
+      println.info('get', 'callback; Mendapatkan refresh token google anda')
       console.log('--- REFRESH TOKEN ANDA ---');
       console.log(tokens.refresh_token);
       console.log('---------------------------');
@@ -124,12 +126,12 @@ app.post('/upload', upload.fields([
 });
 app.get('/datas', async (req, res) => {
   try {
+    println.info('get', 'datas; mengambil data dari youtube')
     const data = [
       await yt.getTop5Videos(),
       await yt.getChannelDashboardStats(),
     ]
     res.json(data); // kirim object, bukan hanya subscriber
-    println.info('get', 'datas; mengambil data dari youtube')
   } catch (err) {
     println.error('get', 'datas; ', err.message)
     res.status(500).json({
