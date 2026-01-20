@@ -1,4 +1,4 @@
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 const AssistantView = ({ theme, buttonModelSelect, sendToAI, chatData }) => {
   const containerStyle = {
@@ -31,6 +31,9 @@ const AssistantView = ({ theme, buttonModelSelect, sendToAI, chatData }) => {
     padding: '12px 16px',
     fontSize: '1.1rem',
     outline: 'none',
+    resize: 'none',
+    fieldSizing: 'content', /* Otomatis meninggi saat enter */
+    maxHeight: '100px',
   };
 
   const actionButtonStyle = {
@@ -54,7 +57,29 @@ const AssistantView = ({ theme, buttonModelSelect, sendToAI, chatData }) => {
     flexWrap: 'wrap',
     justifyContent: 'center'
   };
+
+  const renderMarkdown = (text) => {
+    const rawHtml = window.marked.parse(text, {
+      breaks: true, // Ubah ke false jika ingin jarak enter lebih rapat
+      gfm: true
+    });
+    return { __html: rawHtml };
+  };
   
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (window.hljs) {
+      // Mencari semua tag <pre><code> dan mewarnainya
+      document.querySelectorAll('pre code').forEach((el) => {
+        window.hljs.highlightElement(el);
+      });
+    }
+  }, [chatData]);
+
+  // Tambahkan elemen kosong ini di paling bawah daftar chat:
+  // <div ref={chatEndRef} />
 
   return (
     <div style={containerStyle}>
@@ -75,19 +100,84 @@ const AssistantView = ({ theme, buttonModelSelect, sendToAI, chatData }) => {
             color: item.type === 'user' ? '#fff' : theme.text, // Perbaikan: Sesuaikan warna teks AI agar terbaca
             padding: '10px 15px',
             borderRadius: '10px',
-            maxWidth: '70%',
+            maxWidth: item.type === 'user' ? '70%' : '90%',
             // TAMBAHKAN DUA BARIS INI:
             wordBreak: 'break-word', 
-            whiteSpace: 'pre-wrap', 
             display: 'inline-block'
+
           }}>
-            {/* Pastikan server mengirim text/string, atau akses properti objectnya */}
-            {typeof item.message === 'object' ? JSON.stringify(item.message) : item.message}
+            {item.type === 'user' ? (
+              item.message 
+            ) : (
+              // Gunakan dangerouslySetInnerHTML di sini untuk AI
+              <div 
+                className="markdown-content"
+                dangerouslySetInnerHTML={ renderMarkdown(item.message) } 
+              />
+            )}
           </div>
         ))}
       </div>
       <AIModelInput inputWrapperStyle={inputWrapperStyle} inputStyle={inputStyle} theme={theme} sendToAI={sendToAI} />
       <AIModelButton buttonsRowStyle={buttonsRowStyle} actionButtonStyle={actionButtonStyle} theme={theme} buttonModelSelect={buttonModelSelect} />
+      <style>{`
+          /* Container untuk seluruh Markdown */
+          .markdown-content {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+          }
+          
+          /* Styling Blok Kode */
+          .markdown-content pre {
+            margin: 15px 0;
+            padding: 0; /* Padding diatur di dalam code tag oleh hljs */
+            border-radius: 8px;
+            overflow: hidden; /* Agar sudut tumpul terlihat */
+            background-color: #282c34; /* Warna background default Atom One Dark */
+          }
+          
+          .markdown-content pre code {
+            display: block;
+            padding: 16px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            line-height: 1.5;
+          }
+          
+          /* Scrollbar halus untuk kode yang panjang */
+          .markdown-content pre code::-webkit-scrollbar {
+            height: 8px;
+          }
+          .markdown-content pre code::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+          }
+
+          /* Menghilangkan margin default browser pada tag hasil markdown */
+          .markdown-content p {
+            margin: 0 0 8px 0; /* Jarak bawah antar paragraf hanya 8px */
+          }
+
+          .markdown-content p:last-child {
+            margin-bottom: 0;
+          }
+
+          /* Memastikan pre/code tidak punya margin luar yang besar */
+          .markdown-content pre {
+            margin: 10px 0;
+          }
+
+          /* Jika kamu ingin tulisan 'javascript' muncul lagi sebagai label (Opsional) */
+          .markdown-content pre::before {
+            content: attr(data-language); /* Butuh tambahan logic JS untuk ini */
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 5px;
+          }
+      `}</style>
     </div>
   );
 };

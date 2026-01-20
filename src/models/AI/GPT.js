@@ -85,7 +85,7 @@ let AIDatas = [
 
 async function getGPTResponse(prompt, socket) {
     if (!prompt) return;
-    println.info('get', "gemini; mengambil response dari assistant")
+    println.info('get', "gpt; mengambil response dari assistant")
   
     AIDatas.push({ role: "user", content: prompt });
     let fullAnswer = "";
