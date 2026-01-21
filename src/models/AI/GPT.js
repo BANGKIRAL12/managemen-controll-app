@@ -40,49 +40,6 @@ let AIDatas = [
     { role: "system", content: SYSTEM_PROMPT }
 ]
 
-// async function getGPTResponse() {
-
-//     const prompt = await askQuestion('>');
-//     if (prompt.toLowerCase() === 'selesai') {
-//         console.log('Selesai!');
-//         rl.close();
-//         return
-//     }
-
-//     try {
-//         const response = await axios.post(
-//             'https://api.openai.com/v1/chat/completions',
-//             {
-//                 model: model,
-//                 messages: [{ role: 'user', content: prompt }],
-//                 max_tokens: 150, // Kamu bisa atur jumlah token sesuai kebutuhan
-//             },
-//             {
-//                 headers: {
-//                     'Authorization': `Bearer ${API_KEY}`,
-//                     'Content-Type': 'application/json',
-//                 }
-//             }
-//         );
-//         const output = response.data.choices[0].message.content.split(' ');
-//         let i = 0
-
-//         const interval = setInterval(() => {
-//             process.stdout.write(output[i] + ' ');
-//             i++;
-//             if (i >= output.length) {
-//               console.log(); // newline
-//               clearInterval(interval);
-
-//               getGPTResponse()
-//             }
-//         }, 100);
-
-//     } catch (error) {
-//         console.error('Error:', error.response ? error.response.data : error.message);
-//     }
-// }
-
 async function getGPTResponse(prompt, socket) {
     if (!prompt) return;
     println.info('get', "gpt; mengambil response dari assistant")
